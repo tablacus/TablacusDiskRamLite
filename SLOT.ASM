@@ -562,10 +562,8 @@ _BANK:
 	DB	0
 _BANK1:
 	DB	0
-#if exists _RAM_WRITE
 DISK_WFLG:				;DISKIO呼び出し時の書き込み要求フラグ(0=読み出し/非0=書き込み)
 	DB	0
-#endif
 CLSZ:				;クラスタサイズ
 	DW	1024
 CLSZ_H	EQU	$-1		;クラスタサイズ上位8ビット

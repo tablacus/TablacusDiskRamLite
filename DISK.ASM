@@ -4,24 +4,17 @@
 ;	ROM DISK DRIVER
 ;	1セクタ512
 
-ERROR_WRITE_PROTECTED:
-	LD	A,0		;Write protected
-	RET
 ERROR_NOT_READY:
 	POP	AF
 	SCF
 	LD	A,2		;Not ready
 	RET
 DISKIO:
-#if exists _RAM_WRITE
 	PUSH	AF			;A/CFを一旦退避(GET_DISK_BANK等でCFが壊れる為)
 	LD	A,0
 	RLA				;bit0=書き込み要求か(旧CF)
 	LD	(DISK_WFLG),A
 	POP	AF
-#else
-	JR	C,ERROR_WRITE_PROTECTED
-#endif
 	LD	C,B
 	CALL	GET_DISK_BANK
 	PUSH	AF
@@ -29,13 +22,11 @@ DISKIO:
 	OR	A
 	JR	Z,ERROR_NOT_READY
 	POP	AF
-#if exists _RAM_WRITE
 	PUSH	AF
 	LD	A,(DISK_WFLG)
 	OR	A
 	JR	NZ,DISKIO_W
 	POP	AF
-#endif
 SETMAP1:
 	PUSH	HL
 DISKIO1:
@@ -96,7 +87,6 @@ DISKIO2:
 	XOR	A
 	RET
 
-#if exists _RAM_WRITE
 ;
 ;	似非RAMディスクへの書き込み要求
 ;	A=GET_DISK_BANKの結果(書き込み先ディスクの起点バンク)
@@ -110,7 +100,6 @@ DISKIO_W:
 	LD	(KONAMI_SCC_BANK1_SEL),A	;Konami-8K/Konami-SCC
 	POP	AF
 	JP	DISK_WRITE_RAM		;戻り値の設定とRETはDISK_WRITE_RAM側で行う
-#endif
 
 DSKCHG:
 	CALL	IS_BPB

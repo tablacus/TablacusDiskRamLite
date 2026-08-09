@@ -1,4 +1,4 @@
-;	Tablacus DISK ROM Lite for MSX
+;	Tablacus DISK RAM Lite for MSX
 ;	Programmed by
 ;	Gaku (Lovers/Tablacus)
 
@@ -31,13 +31,9 @@
 	ORG	0407FH
 	RET
 ; Version
-#if exists _RAM_WRITE
 	DB	"Tablacus DISK RAM Lite"
-#else
-	DB	"Tablacus DISK ROM Lite"
-#endif
 	ALIGN	32
-	DB	"v0.0.0.1"
+	DB	"v0.0.0.2"
 	ALIGN	32
 MSG_ERROR_ROM_MODE:
 #if exists USE_NORMAL32K_OR_ASCII16
@@ -128,25 +124,27 @@ LAST	EQU	$$
 	DS	01FFFH-LAST
 	DB	0
 
-#if exists _RAM_WRITE
 ;=====================================================================
 ;	2バンク目 (ファイルオフセット 2000H-3FFFH / セグメント#1)
 ;
-;	似非RAMディスクへの書き込み処理を行う間だけBANK1(6000h-7fffh)に
-;	マッピングされる。それ以外の時間はBANK1は通常通りディスク
-;	データ(セグメント2以降)の読み出しウィンドウとして使われる。
+;	普段はDISKデータ(セグメント2以降)の読み出しウィンドウとして
+;	使われるBANK1(6000h-7fffh)に、必要な時だけ切り替えてマッピング
+;	して使う、常駐コード置き場。
+;	  - 似非RAMディスクへの書き込みルーチン(DISK_WRITE_RAM)
+;	  - 起動時のみ使うRAM検出ルーチン(CHK_RAM等)
+;	など、「頻繁に呼ばれない」「BANK1を他の目的で使っていない
+;	タイミングでしか呼ばれない」ルーチンをここに集約している。
 ;
-;	この2バンク目が常に存在する為、DEF.ASMでDISK_BANK=2に変更して
+;	この2バンク目が常に存在する為、DEF.ASMでDISK_BANK=2にして
 ;	ディスクイメージの先頭(ドライブA)がセグメント2から始まるように
-;	している。DISKROM.BIN(またはDISKRAM.BIN)本体が8KBから16KBに
-;	なった分、後ろに連結するDSKファイルの位置がそのままズレるだけ
-;	なので、連結の手順自体はROM Lite版と同じ(単純に連結するだけ)。
+;	している。DISKRAM.BIN本体が8KBから16KBになった分、後ろに連結
+;	するDSKファイルの位置がそのままズレるだけなので、連結の手順
+;	自体は従来と同じ(単純に連結するだけ)。
 ;=====================================================================
 	ORG	06000H,$$
-	INCLUDE	"DISKWRAM.ASM"
+	INCLUDE	"BANK1.ASM"
 LAST2	EQU	$$
 	DS	03FFFH-LAST2
 	DB	0
-#endif
 
 	END

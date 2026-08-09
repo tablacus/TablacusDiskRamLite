@@ -1892,6 +1892,52 @@ GNC1L:
 	AND	A
 	RET
 
+;
+;	空きクラスタ数を数える
+;	IN  A =対象ドライブ番号(0オリジン、0=A: 1=B:)
+;	    DE=MAXCLUS(最後に調べるクラスタ番号、GETDPBの計算結果そのまま)
+;	OUT HL=空きクラスタ数
+;
+;	クラスタ番号は標準的なFAT12の2オリジン(有効なクラスタ番号は
+;	2〜MAXCLUS)。GNCL/NCL3もこの前提で作られている為、2未満の
+;	クラスタは調べない。
+;
+;	FDRVの退避・復帰はこのルーチン内で完結する
+;	(GNCL/NCL3内部でGET_DISK_BANK_FDRVを使ってFATのバンクを選ぶ為、
+;	呼び出し中だけFDRVを対象ドライブに切り替える)
+;
+DSKF_FREE:
+	PUSH	AF			;ドライブ番号を退避
+	LD	A,(FDRV)
+	LD	C,A			;元のFDRVをCへ退避
+	POP	AF
+	INC	A			;FDRV設定値(ドライブ番号+1、0は既定ドライブの意味)
+	LD	(FDRV),A
+	PUSH	BC			;元のFDRV(C)を退避
+	LD	HL,0
+DSKF_FREE1:
+	LD	A,E			;DE<2なら終了(有効なクラスタ番号は2以上)
+	SUB	2
+	LD	A,D
+	SBC	A,0
+	JR	C,DSKF_FREE_END
+	PUSH	DE
+	CALL	GNCL
+	JR	C,DSKF_FREE2
+	LD	A,D
+	OR	E
+	JR	NZ,DSKF_FREE2
+	INC	HL
+DSKF_FREE2:
+	POP	DE
+	DEC	DE
+	JR	DSKF_FREE1
+DSKF_FREE_END:
+	POP	BC			;元のFDRVを復帰
+	LD	A,C
+	LD	(FDRV),A
+	RET
+
 CLUST:
 	EX	DE,HL
 CLUST_HL:

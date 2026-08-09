@@ -159,11 +159,7 @@ NEW_HIMEM	EQU	ISC
 NEW_HIMEM	EQU	ISCB
 #endif
 
-#if exists _RAM_WRITE
-DISK_BANK	EQU	2		;ドライブAが始まるバンク# (RAM Lite:本体16KB=2バンク分の後ろから)
-#else
-DISK_BANK	EQU	1		;ドライブAが始まるバンク#
-#endif
+DISK_BANK	EQU	2		;ドライブAが始まるバンク# (本体16KB=2バンク分の後ろから)
 BANK1_ADR	EQU	06000H		;バンク1(ページ2)の開始アドレス	;ディスクリード時の読み出しウィンドウ
 BANK0_ADR	EQU	04000H		;バンク0(ページ1)の開始アドレス	;RAMディスク書き込み時の書き込みウィンドウ
 

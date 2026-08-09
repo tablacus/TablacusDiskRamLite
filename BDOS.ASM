@@ -724,10 +724,16 @@ _SYS1B:		;(BDOS)ディスク情報の獲得
 	LD	IX,SYS1B_DPB
 	LD	IY,SYS1B_FAT
 	LD	BC,(SYS1B_DPB+1+1)	;SECSIZ
+	PUSH	BC			;SECSIZを退避
+	LD	A,E			;A=対象ドライブ番号(0オリジン、DEを壊す前に確保)
 	LD	DE,(SYS1B_DPB+1+13)	;MAXCLUS
 	DEC	DE
-	DEC	DE
-	LD	HL,0			;書き込み不可なので0を返す
+	DEC	DE			;DE=呼び出し元に返す値(MAXCLUS-2)
+	PUSH	DE			;戻り値を退避
+	LD	DE,(SYS1B_DPB+1+13)	;DE=MAXCLUS(未加工、空きクラスタ数計算用)
+	CALL	DSKF_FREE		;A=ドライブ番号 DE=MAXCLUS → HL=空きクラスタ数
+	POP	DE			;DE=MAXCLUS-2(戻り値)を復帰
+	POP	BC			;BC=SECSIZを復帰
 	POP	AF
 	RET
 S1B_E:
