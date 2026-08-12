@@ -619,7 +619,7 @@ _SYS11:		;(BDOS)最初のファイルの検索
 	PUSH	DE
 	POP	IY
 	CALL	INIT_FILE
-	LD	(IY+24),1
+	LD	(IY+24),0		;=表示済みエントリ数(次回_SYS12でのスキップ数)
 	CALL	GET_DIR_DAT
 S12X1:
 	CALL    FILESE
@@ -711,6 +711,8 @@ _SYS1B:		;(BDOS)ディスク情報の獲得
 	SUB	1
 	CALL	C,_SYS19
 	LD	E,A
+	LD	(S1B_DRV),A		;対象ドライブ番号(0オリジン)を退避
+					;(GETDPB内部でDE/Eが壊れる為、呼び出し前に確保しておく)
 	CALL	IS_BPB
 	JR	C,S1B_E
 	PUSH	AF
@@ -725,11 +727,11 @@ _SYS1B:		;(BDOS)ディスク情報の獲得
 	LD	IY,SYS1B_FAT
 	LD	BC,(SYS1B_DPB+1+1)	;SECSIZ
 	PUSH	BC			;SECSIZを退避
-	LD	A,E			;A=対象ドライブ番号(0オリジン、DEを壊す前に確保)
 	LD	DE,(SYS1B_DPB+1+13)	;MAXCLUS
 	DEC	DE
 	DEC	DE			;DE=呼び出し元に返す値(MAXCLUS-2)
 	PUSH	DE			;戻り値を退避
+	LD	A,(S1B_DRV)		;A=対象ドライブ番号(0オリジン)
 	LD	DE,(SYS1B_DPB+1+13)	;DE=MAXCLUS(未加工、空きクラスタ数計算用)
 	CALL	DSKF_FREE		;A=ドライブ番号 DE=MAXCLUS → HL=空きクラスタ数
 	POP	DE			;DE=MAXCLUS-2(戻り値)を復帰
