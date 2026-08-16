@@ -63,8 +63,7 @@ DISKIO1:
 	ADD	HL,HL		;32KB→16KB
 	ADD	HL,HL		;16KB→8KB	バンク切り替えのサイズに合わせる
 	ADD	A,H
-	LD	(BANK1_SEL),A			;ASCII-8K/Konami-8K
-	LD	(KONAMI_SCC_BANK1_SEL),A	;Konami-8K/Konami-SCC
+	LD	(BANK1_SEL),A			;ASCII-8K
 	LD	(_BANK),A
 	LD	A,C		;C=読み出し元
 	AND	01FH		;セグメントのサイズでフィルタする(8K:1F)
@@ -97,7 +96,6 @@ DISKIO_W:
 	PUSH	AF			;DISK_WRITE_RAMに渡す為に保持しておく
 	LD	A,1			;書き込みルーチンの常駐セグメント#1を
 	LD	(BANK1_SEL),A		;BANK1(6000h-7fffh)へマッピングする
-	LD	(KONAMI_SCC_BANK1_SEL),A	;Konami-8K/Konami-SCC
 	POP	AF
 	JP	DISK_WRITE_RAM		;戻り値の設定とRETはDISK_WRITE_RAM側で行う
 
@@ -423,8 +421,7 @@ SET_DISK_BANK:
 #if exists USE_NORMAL32K_OR_ASCII16
 	LD	(ASCII16_BANK1_SEL),A		;ASCII-16K
 #else
-	LD	(BANK1_SEL),A			;ASCII-8K/Konami-8K
-	LD	(KONAMI_SCC_BANK1_SEL),A	;Konami-8K/Konami-SCC
+	LD	(BANK1_SEL),A			;ASCII-8K
 #endif
 	PUSH	AF
 	PUSH	HL

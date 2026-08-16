@@ -56,7 +56,7 @@ DISKIO1W:
 	ADD	HL,HL		;16KB→8KB	バンク切り替えのサイズに合わせる
 	ADD	A,H		;A=書き込み先の8KBバンク番号
 	OR	080H		;似非RAMディスクのバンク(80H以降)を指定する
-	LD	(BANK0_SEL),A			;ASCII-8K/Konami-8K
+	LD	(BANK0_SEL),A			;ASCII-8K
 					;BANK0(4000h-5fffh)にRAMセグメントを表示させる
 	LD	A,C		;C=書き込み元アドレスのセグメント内オフセット
 	AND	01FH		;セグメントのサイズでフィルタする(8K:1F)
@@ -75,7 +75,7 @@ DISKIO1W:
 
 	POP	HL
 	XOR	A		;バンク0を元(ドライバ本体/セグメント0)に戻す
-	LD	(BANK0_SEL),A			;ASCII-8K/Konami-8K
+	LD	(BANK0_SEL),A			;ASCII-8K
 	EI
 	RET
 
@@ -170,4 +170,36 @@ CHK_RAM1:
 	LD	L,A
 	JR	NZ,CHK_RAM1
 	LD	A,C		;ZF=1のハズ
+	RET
+
+;
+;	似非RAMディスクの任意の位置のバイト列を書き換える
+;	(ファイル名変更(_SYS17)等、ディレクトリエントリの一部だけを
+;	 書き換えたい場合に使用する。DISK_WRITE_RAMのようなセクタ単位
+;	 の計算は行わず、呼び出し元が指定したアドレスへそのまま書き込む)
+;
+;	IN  A  = 書き換え先データが現在マッピングされているセグメント番号
+;	          (GET_DISK_BANK_FDRV/_DIR_BANK等で得られる値)
+;	    HL = 書き換え先アドレス(BANK1_ADR相対、6000h-7fffhの範囲)
+;	    DE = 書き込むデータの転送元メモリアドレス
+;	    B  = 書き込むバイト数
+;	OUT A  = 0(成功)
+;
+PATCH_RAM_BYTES:
+	DI			;BANK0切り替え中の割り込みを防止
+	PUSH	AF		;A=セグメント番号を退避(BCはLDIRのバイト数として
+				;呼び出し元から渡されている為、Cを潰さないようにする)
+	LD	A,H
+	AND	01FH		;セグメントのサイズでフィルタする(8K:1F)
+	ADD	A,high BANK0_ADR
+	LD	H,A		;HL=書き換え先アドレス(BANK0_ADR相対)に変換
+	POP	AF		;A=セグメント番号を復帰
+	OR	080H		;似非RAMディスクのセグメント(80H以降)を指定する
+	LD	(BANK0_SEL),A		;ASCII-8K
+					;BANK0(4000h-5fffh)にRAMセグメントを表示させる
+	EX	DE,HL		;HL=書き込み元メモリアドレス DE=書き込み先(RAMディスクウィンドウ)
+	LDIR
+	XOR	A		;バンク0を元(ドライバ本体/セグメント0)に戻す
+	LD	(BANK0_SEL),A		;ASCII-8K
+	EI
 	RET

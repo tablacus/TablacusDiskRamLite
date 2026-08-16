@@ -1605,8 +1605,7 @@ CHECK_DIR_PAGE:			;ディレクトリが2ページ目に跨るかチェックす
 	LD	H,A
 	LD	A,(_DIR_BANK)
 	INC	A
-	LD	(BANK1_SEL),A			;ASCII-8K/Konami-8K
-	LD	(KONAMI_SCC_BANK1_SEL),A	;Konami-8K/Konami-SCC
+	LD	(BANK1_SEL),A			;ASCII-8K
 	LD	(_DIR_BANK),A
 CHECK_DIR_PAGE1:
 	POP	AF
@@ -1686,8 +1685,7 @@ RBX1:
 	EX	DE,HL		;AHL=File size
 	POP	DE
 #else
-	LD	(BANK1_SEL),A			;ASCII-8K/Konami-8K
-	LD	(KONAMI_SCC_BANK1_SEL),A	;Konami-8K/Konami-SCC
+	LD	(BANK1_SEL),A			;ASCII-8K
 	LD	IY,(DIRENT1)
 	LD	L,(IY+01CH)	;AHL=File size
 	LD	H,(IY+01DH)
@@ -1747,8 +1745,7 @@ RBXA1:
 #if exists USE_NORMAL32K_OR_ASCII16
 	LD	(ASCII16_BANK1_SEL),A		;ASCII-16K
 #else
-	LD	(BANK1_SEL),A			;ASCII-8K/Konami-8K
-	LD	(KONAMI_SCC_BANK1_SEL),A	;Konami-8K/Konami-SCC
+	LD	(BANK1_SEL),A			;ASCII-8K
 #endif
 	PUSH	HL
 	LD	HL,(_DTPS)
@@ -1818,8 +1815,7 @@ E_RWX:
 	LD	D,A
 	POP	HL
 #else
-	LD	(BANK1_SEL),A			;ASCII-8K/Konami-8K
-	LD	(KONAMI_SCC_BANK1_SEL),A	;Konami-8K/Konami-SCC
+	LD	(BANK1_SEL),A			;ASCII-8K
 	LD	IY,(DIRENT1)
 	LD	E,(IY+01AH)	;ファイルの先頭クラスタ
 	LD	D,(IY+01BH)
@@ -1983,8 +1979,7 @@ CLUST_HL:
 	ADD	HL,HL	;16KB→8KB	バンク切り替えのサイズに合わせる
 	CALL	GET_DISK_BANK_FDRV
 	ADD	A,H
-	LD	(BANK1_SEL),A			;ASCII-8K/Konami-8K
-	LD	(KONAMI_SCC_BANK1_SEL),A	;Konami-8K/Konami-SCC
+	LD	(BANK1_SEL),A			;ASCII-8K
 	LD	(_BANK),A
 	LD	L,C		;C=読み出し元
 	LD	A,01FH			;セグメントのサイズでフィルタする(8K:1F)
@@ -2530,8 +2525,7 @@ DEVICE_12_LOF:
 	EX	DE,HL		;AHL=File size
 	POP	DE
 #else
-	LD	(BANK1_SEL),A			;ASCII-8K/Konami-8K
-	LD	(KONAMI_SCC_BANK1_SEL),A	;Konami-8K/Konami-SCC
+	LD	(BANK1_SEL),A			;ASCII-8K
 	LD	IY,(DIRENT1)
 	LD	L,(IY+01CH)	;AHL=File size
 	LD	H,(IY+01DH)

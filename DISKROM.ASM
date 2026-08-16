@@ -39,7 +39,7 @@ MSG_ERROR_ROM_MODE:
 #if exists USE_NORMAL32K_OR_ASCII16
 	DB	"Normal ROM/ASCII-16K only!",13,10
 #else
-	DB	"ASCII-8K/Konami-8K/Konami-SCC only!",13,10
+	DB	"ASCII-8K only!",13,10
 #endif
 	ORG	04100H
 INIT_ROM:

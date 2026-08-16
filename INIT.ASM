@@ -87,8 +87,7 @@ INIT_300:
 	LD	(ASCII16_BANK1_SEL),A		;ASCII-16K
 #else
 	LD	(BANK0_SEL),A			;似非RAM対策でバンク0を設定
-	LD	(BANK1_SEL),A			;ASCII-8K/Konami-8K
-	LD	(KONAMI_SCC_BANK1_SEL),A	;Konami-8K/Konami-SCC
+	LD	(BANK1_SEL),A			;ASCII-8K
 #endif
 	LD	A,(BANK1_ADR)
 	CP	'A'
@@ -99,8 +98,7 @@ INIT_300:
 #else
 	JP	NZ,NOT_BANK_TYPE
 	LD	A,DISK_BANK
-	LD	(BANK1_SEL),A			;ASCII-8K/Konami-8K
-	LD	(KONAMI_SCC_BANK1_SEL),A	;Konami-8K/Konami-SCC
+	LD	(BANK1_SEL),A			;ASCII-8K
 #endif
 	LD	H,0C0H
 	CALL	AT_GETSLT
@@ -110,7 +108,6 @@ INIT_300:
 	PUSH	AF			;A=スロット番号(ページ2)を退避
 	LD	A,1			;CHK_RAMの常駐セグメント#1を
 	LD	(BANK1_SEL),A		;BANK1(6000h-7fffh)へ切り替える
-	LD	(KONAMI_SCC_BANK1_SEL),A	;Konami-8K/Konami-SCC
 	POP	AF
 	CALL	CHK_RAM
 	LD	(RAMAD2),A
@@ -127,7 +124,6 @@ RAMCHK1:
 RAMCHK0:
 	LD	A,DISK_BANK		;BANK1をディスクA:のデータ領域(BPB読み出し用)に戻す
 	LD	(BANK1_SEL),A
-	LD	(KONAMI_SCC_BANK1_SEL),A	;Konami-8K/Konami-SCC
 	LD	HL,(BANK1_ADR+19)	;BPB_TotSec16
 	LD	BC,0000FH		;切り上げ
 	ADD	HL,BC

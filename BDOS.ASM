@@ -547,7 +547,7 @@ _SYS0F:		;(BDOS)ファイルのオープン
 	POP	IY
 	CALL	INIT_FILE
 	CALL	ROM_OPEN
-	JR	C,SCF_FF_RET
+	JP	C,SCF_FF_RET
 ;				Open(Read)
 	LD	(IY+28),0FFH
 ;				FILENAME
@@ -606,6 +606,56 @@ _SYS0F:		;(BDOS)ファイルのオープン
 _SYS10:		;(BDOS)ファイルのクローズ
 	XOR	A
 	RET
+
+_SYS17:		;(BDOS)ファイル名の変更
+	PUSH	DE
+	POP	IY
+	CALL	INIT_FILE
+	CALL	ROM_OPEN		;FNAME(旧ファイル名)に一致するエントリを検索
+	JP	C,SCF_FF_RET		;見つからなければエラー
+	;	HL=見つかったエントリのアドレス(BANK1_ADR相対)
+	LD	A,(_DIR_BANK)		;A=そのエントリがあるセグメント番号
+	PUSH	AF			;退避
+	PUSH	HL			;退避(旧エントリのアドレス)
+
+	;	新ファイル名(FCB+17〜+27)を大文字化しながらFNAMEへコピーし、
+	;	既に存在しないか確認する
+	;	(FCB+16は新側FCBの先頭=ドライブバイトなので、ファイル名自体は+17から)
+	PUSH	IY
+	POP	HL
+	LD	DE,17
+	ADD	HL,DE			;HL=&(IY+17)=新ファイル名
+	LD	DE,FNAME
+	LD	B,11
+S17_CAP:
+	LD	A,(HL)
+	CALL	CAP			;小文字は大文字に変換する
+	LD	(DE),A
+	INC	HL
+	INC	DE
+	DJNZ	S17_CAP
+
+	CALL	ROM_OPEN		;新ファイル名(FNAME、大文字化済み)で再検索
+	JR	NC,S17_EXIST		;見つかった(CF=0)場合はエラー(既に存在する)
+
+	;	新ファイル名は未使用 → 実際に書き換える
+	POP	HL			;HL=旧エントリのアドレス(書き込み先)
+	POP	AF			;A=旧エントリのセグメント番号
+	LD	C,A			;C=書き換え対象セグメント番号(退避)
+	LD	DE,FNAME		;DE=新ファイル名(大文字化済み、転送元)
+	LD	A,1			;書き込みルーチンの常駐セグメント#1を
+	LD	(BANK1_SEL),A		;BANK1(6000h-7fffh)へマッピングする
+	LD	A,C			;A=書き換え対象セグメント番号
+	LD	BC,11			;BC=書き込みバイト数(ファイル名8+拡張子3)
+					;※Cを退避に使っていたので下位バイトも明示的に設定する
+	CALL	PATCH_RAM_BYTES
+	XOR	A
+	RET
+
+S17_EXIST:
+	POP	HL			;スタック調整
+	POP	AF			;スタック調整
+	JP	SCF_FF_RET		;新ファイル名が既に存在する→エラー
 
 S11X1:
 	LD	(IY+25),C       ;RootEntCnt
@@ -926,8 +976,7 @@ INIT_FILE1:
 #if exists USE_NORMAL32K_OR_ASCII16
 	LD	(ASCII16_BANK1_SEL),A		;ASCII-16K
 #else
-	LD	(BANK1_SEL),A			;ASCII-8K/Konami-8K
-	LD	(KONAMI_SCC_BANK1_SEL),A	;Konami-8K/Konami-SCC
+	LD	(BANK1_SEL),A			;ASCII-8K
 #endif
 	LD	L,(IY+14)
 	LD	H,(IY+15)
@@ -1066,7 +1115,6 @@ _SYS03	EQU	SCF_FF_RET	;(BDOS)外部入力
 _SYS13	EQU	SCF_FF_RET	;(BDOS)ファイルの削除
 _SYS15	EQU	SCF_FF_RET	;(BDOS)シーケンシャルな書き込み
 _SYS16	EQU	SCF_FF_RET	;(BDOS)ファイルの作成
-_SYS17	EQU	SCF_FF_RET	;(BDOS)ファイル名の変更
 _SYS22	EQU	SCF_FF_RET	;(BDOS)ランダムな書き込み
 _SYS26	EQU	SCF_FF_RET	;(BDOS)ランダムブロック書き込み
 _SYS28	EQU	SCF_FF_RET	;(BDOS)ランダムな書き込み・その2
